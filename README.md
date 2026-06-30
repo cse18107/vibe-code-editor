@@ -131,9 +131,3 @@ WebContainer cross-origin-isolation headers are configured, and the template
 route writes to the OS temp dir. Set the same environment variables in your host,
 point your OAuth callback URLs at the production domain, and set
 `AUTH_TRUST_HOST=true`.
-
----
-
-## License
-
-MIT
