@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  PREMIUM_USER
+}
+
+model User {
+  id       String    @id @default(cuid()) @map("_id")
+  name     String?
+  username String?   @unique
+  email    String    @unique
+  image    String?
+  accounts Account[]
+  role     UserRole  @default(USER)
+
+  myPlayground StarMark[]
+
+  chatMessages ChatMessage[] // New relation for chat messages
+
+  staredPlayground Playground[]
+
+  // Collaboration
+  memberships         PlaygroundMember[]
+  sentInvitations     Invitation[]       @relation("Inviter")
+  receivedInvitations Invitation[]       @relation("Invitee")
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid()) @map("_id")
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String
+  refreshToken      String? @map("refresh_token")
+  accessToken       String? @map("access_token")
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type")
+  scope             String?
+  idToken           String? @map("id_token")
+  sessionState      String? @map("session_state")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+enum Templates {
+  REACT
+  NEXTJS
+  EXPRESS
+  VUE
+  HONO
+  ANGULAR
+}
+
+model Playground {
+  id            String         @id @default(cuid()) @map("_id")
+  title         String
+  description   String?
+  template      Templates      @default(REACT)
+  templateFiles TemplateFile[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Starmark      StarMark[]
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Set when a playground was imported from GitHub, so changes can be pushed back.
+  githubRepo    String?
+  githubBranch  String?
+
+  // Collaboration
+  members       PlaygroundMember[]
+  invitations   Invitation[]
+}
+
+enum MemberRole {
+  OWNER
+  EDITOR
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model PlaygroundMember {
+  id           String     @id @default(cuid()) @map("_id")
+  playgroundId String
+  userId       String
+  role         MemberRole @default(EDITOR)
+  createdAt    DateTime   @default(now())
+
+  playground Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([playgroundId, userId])
+  @@index([userId])
+}
+
+model Invitation {
+  id           String           @id @default(cuid()) @map("_id")
+  playgroundId String
+  inviterId    String
+  inviteeId    String
+  status       InvitationStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+
+  playground Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+  inviter    User       @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee    User       @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@unique([playgroundId, inviteeId])
+  @@index([inviteeId])
+}
+
+model StarMark {
+  id           String     @id @default(cuid()) @map("_id")
+  userId       String
+  playgroundId String
+  isMarked     Boolean
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playground   Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, playgroundId])
+}
+
+model TemplateFile {
+  id           String     @id @default(cuid()) @map("_id")
+  content      Json
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  playgroundId String     @unique
+  playground   Playground @relation(fields: [playgroundId], references: [id], onDelete: Cascade)
+}
+
+// New model for AI chat messages
+model ChatMessage {
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String
+  role      String // "user" or "assistant"
+  content   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
