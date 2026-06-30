@@ -1,149 +1,139 @@
-# 🧠 Vibecode Editor – AI-Powered Web IDE
+# VibeCode — AI-Powered Web IDE
 
-![Vibecode Editor Thumbnail](public/vibe-code-editor-thumbnail.svg)
+VibeCode is a browser-based code editor for building, running, and collaborating
+on projects without any local setup. It pairs a Monaco editor with in-browser
+execution (WebContainers), AI assistance from your choice of provider, GitHub
+import, and real-time multiplayer editing.
 
-**Vibecode Editor** is a blazing-fast, AI-integrated web IDE built entirely in the browser using **Next.js App Router**, **WebContainers**, **Monaco Editor**, and **local LLMs via Ollama**. It offers real-time code execution, an AI-powered chat assistant, and support for multiple tech stacks — all wrapped in a stunning developer-first UI.
-
----
-
-## 🚀 Features
-
-- 🔐 **OAuth Login with NextAuth** – Supports Google & GitHub login.
-- 🎨 **Modern UI** – Built with TailwindCSS & ShadCN UI.
-- 🌗 **Dark/Light Mode** – Seamlessly toggle between themes.
-- 🧱 **Project Templates** – Choose from React, Next.js, Express, Hono, Vue, or Angular.
-- 🗂️ **Custom File Explorer** – Create, rename, delete, and manage files/folders easily.
-- 🖊️ **Enhanced Monaco Editor** – Syntax highlighting, formatting, keybindings, and AI autocomplete.
-- 💡 **AI Suggestions with Ollama** – Local models give you code completion on `Ctrl + Space` or double `Enter`. Accept with `Tab`.
-- ⚙️ **WebContainers Integration** – Instantly run frontend/backend apps right in the browser.
-- 💻 **Terminal with xterm.js** – Fully interactive embedded terminal experience.
-- 🤖 **AI Chat Assistant** – Share files with the AI and get help, refactors, or explanations.
+> Built with Next.js 15 (App Router), TypeScript, Prisma + MongoDB, NextAuth,
+> Liveblocks, and Tailwind.
 
 ---
 
-## 🧱 Tech Stack
+## Features
 
-| Layer         | Technology                                   |
-|---------------|----------------------------------------------|
-| Framework     | Next.js 15 (App Router)                      |
-| Styling       | TailwindCSS, ShadCN UI                       |
-| Language      | TypeScript                                   |
-| Auth          | NextAuth (Google + GitHub OAuth)             |
-| Editor        | Monaco Editor                                |
-| AI Suggestion | Ollama (LLMs running locally via Docker)     |
-| Runtime       | WebContainers                                |
-| Terminal      | xterm.js                                     |
-| Database      | MongoDB (via DATABASE_URL)                   |
+- **AI autocomplete & chat** — context-aware inline completions and an in-editor
+  assistant. Pluggable provider: **OpenAI** or **Gemini**, switchable via env
+  (no code changes).
+- **Run in the browser** — frontend and backend projects boot instantly with
+  **WebContainers**; an embedded terminal lets you run any command (`npm install`,
+  `npm run dev`, `npx serve`, …) and a live preview appears automatically.
+- **Import from GitHub** — connect your account, browse your repos, pick a branch,
+  and start editing in seconds.
+- **Real-time collaboration** — invite up to 5 people by username and edit
+  together live, with shared cursors, presence, and instant sync (Liveblocks +
+  Yjs).
+- **Project workspaces** — create playgrounds from templates, a full file
+  explorer (create / rename / delete files & folders), and autosave to the DB.
+- **OAuth auth** — sign in with Google or GitHub (NextAuth).
+- **Polished UI** — clean, minimal design with light/dark mode.
 
 ---
 
-## 🛠️ Getting Started
+## Tech stack
 
-### 1. Clone the Repo
+| Layer            | Technology                                  |
+| ---------------- | ------------------------------------------- |
+| Framework        | Next.js 15 (App Router), React 19           |
+| Language         | TypeScript                                  |
+| Styling          | Tailwind CSS, shadcn/ui, Geist              |
+| Auth             | NextAuth (Google + GitHub OAuth)            |
+| Database         | MongoDB via Prisma                          |
+| Editor           | Monaco Editor                               |
+| In-browser runtime | WebContainers + xterm.js                  |
+| AI               | OpenAI / Google Gemini (pluggable)          |
+| Collaboration    | Liveblocks + Yjs (`y-monaco`)               |
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- **Node.js 22 LTS**
+- A **MongoDB** database (e.g. MongoDB Atlas)
+- API keys: Google/GitHub OAuth, an AI provider (OpenAI or Gemini), and Liveblocks
+
+### 1. Install
 
 ```bash
-git clone https://github.com/your-username/vibecode-editor.git
-cd vibecode-editor
-````
-
-### 2. Install Dependencies
-
-```bash
+git clone https://github.com/cse18107/vibe-code-editor.git
+cd vibe-code-editor
 npm install
 ```
 
-### 3. Set Up Environment Variables
+### 2. Environment variables
 
-Create a `.env.local` file using the template:
-
-```bash
-cp .env.example .env.local
-```
-
-Then, fill in your credentials:
+Create a `.env.local` in the project root:
 
 ```env
-AUTH_SECRET=your_auth_secret
-AUTH_GOOGLE_ID=your_google_client_id
-AUTH_GOOGLE_SECRET=your_google_secret
-AUTH_GITHUB_ID=your_github_client_id
-AUTH_GITHUB_SECRET=your_github_secret
-DATABASE_URL=your_mongodb_connection_string
+# Auth
+AUTH_SECRET=                # `npx auth secret`
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+AUTH_GITHUB_ID=
+AUTH_GITHUB_SECRET=
 NEXTAUTH_URL=http://localhost:3000
+
+# Database (MongoDB)
+DATABASE_URL=
+
+# AI provider (openai | gemini)
+AI_PROVIDER=gemini
+AI_CHAT_MODEL=gemini-2.5-pro
+AI_COMPLETION_MODEL=gemini-2.5-flash
+GEMINI_API_KEY=
+# OPENAI_API_KEY=          # if AI_PROVIDER=openai
+
+# Real-time collaboration
+LIVEBLOCKS_SECRET_KEY=
 ```
 
-### 4. Start Local Ollama Model
-
-Make sure [Ollama](https://ollama.com/) and Docker are installed, then run:
+### 3. Generate the Prisma client
 
 ```bash
-ollama run codellama
+npx prisma generate
 ```
 
-Or use your preferred model that supports code generation.
-
-### 5. Run the Development Server
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 📁 Project Structure
+## How it fits together
+
+A high-level, file-by-file walkthrough of the codebase lives in
+[`ARCHITECTURE.md`](./ARCHITECTURE.md). In short:
 
 ```
-.
-├── app/                     # App Router-based pages & routes
-├── components/              # UI components
-├── editor/                 # Monaco, File Explorer, Terminal
-├── lib/                     # Utility functions
-├── public/                  # Static files (incl. thumbnail)
-├── utils/                   # AI helpers, WebContainer logic
-├── .env.example             # Example env vars
-└── README.md
+Request → middleware (auth) → layout → page (landing / dashboard / playground)
+
+Playground
+  ├─ usePlayground / useFileExplorer  → load & manage the file tree
+  ├─ playground-editor (Monaco)
+  │    ├─ useAISuggestion → /api/code-suggestion → lib/ai
+  │    └─ useMonacoCollab → Liveblocks/Yjs (live edits + cursors)
+  ├─ ai-chat-sidepanel → /api/chat → lib/ai
+  └─ webcontainer-preview → run & preview
 ```
 
 ---
 
-## 🎯 Keyboard Shortcuts
+## Deployment
 
-* `Ctrl + Space` or `Double Enter`: Trigger AI suggestions
-* `Tab`: Accept AI suggestion
-* `/`: Open Command Palette (if implemented)
-
----
-
-## ✅ Roadmap
-
-* [x] Google & GitHub Auth via NextAuth
-* [x] Multiple stack templates
-* [x] Monaco Editor + AI
-* [x] WebContainers + terminal
-* [x] AI chat for code assistance
-* [ ] GitHub repo import/export
-* [ ] Save/load playground from DB
-* [ ] Real-time collaboration
-* [ ] Plugin system for templates/tools
-* [ ] One-click deploy via Vercel/Netlify
+The app is set up for **Vercel**: `prisma generate` runs on install, the
+WebContainer cross-origin-isolation headers are configured, and the template
+route writes to the OS temp dir. Set the same environment variables in your host,
+point your OAuth callback URLs at the production domain, and set
+`AUTH_TRUST_HOST=true`.
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## 🙏 Acknowledgements
-
-* [Monaco Editor](https://microsoft.github.io/monaco-editor/)
-* [Ollama](https://ollama.com/) – for offline LLMs
-* [WebContainers](https://webcontainers.io/)
-* [xterm.js](https://xtermjs.org/)
-* [NextAuth.js](https://next-auth.js.org/)
-
-```
-
+MIT
