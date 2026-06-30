@@ -16,7 +16,9 @@ import {
   Save,
   X,
   Settings,
+  ArrowLeft,
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -270,6 +272,20 @@ const MainPlaygroundPage: React.FC = () => {
   const activeFile = openFiles.find((file) => file.id === activeFileId);
   const activeFilePath =
     activeFile && templateData ? findFilePath(activeFile, templateData) : null;
+
+  // Live preview sync: write the active file into THIS browser's WebContainer
+  // whenever its content changes — from local typing OR a remote collaborator's
+  // edit (which arrives via Yjs and updates the content). This makes every
+  // participant's preview hot-reload, not just the person who saves.
+  React.useEffect(() => {
+    if (!writeFileSync || !instance || !activeFile || !activeFilePath) return;
+    const content = activeFile.content ?? "";
+    const timer = setTimeout(() => {
+      writeFileSync(activeFilePath, content).catch(() => {});
+    }, 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFile?.content, activeFilePath, writeFileSync, instance]);
   const hasUnsavedChanges = openFiles.some((file) => file.hasUnsavedChanges);
 
   const handleFileSelect = (file: TemplateFile) => {
@@ -470,6 +486,13 @@ const MainPlaygroundPage: React.FC = () => {
         <SidebarInset className="min-w-0 overflow-hidden">
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
+            <Link
+              href="/dashboard"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Back to dashboard"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
             <Separator orientation="vertical" className="mr-2 h-4" />
 
             <div className="flex flex-1 items-center gap-2">

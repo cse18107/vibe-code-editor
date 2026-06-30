@@ -271,9 +271,9 @@ function TemplateNode({
     return (
       <SidebarMenuItem>
         <div className="flex items-center group">
-          <SidebarMenuButton isActive={isSelected} onClick={() => onFileSelect?.(file)} className="flex-1">
+          <SidebarMenuButton isActive={isSelected} onClick={() => onFileSelect?.(file)} className="flex-1 min-w-0">
             <File className="h-4 w-4 mr-2 shrink-0" />
-            <span>{fileName}</span>
+            <span title={fileName} className="truncate">{fileName}</span>
           </SidebarMenuButton>
 
           <DropdownMenu>
@@ -383,10 +383,10 @@ function TemplateNode({
         >
           <div className="flex items-center group">
             <CollapsibleTrigger asChild>
-              <SidebarMenuButton className="flex-1">
-                <ChevronRight className="transition-transform" />
+              <SidebarMenuButton className="flex-1 min-w-0">
+                <ChevronRight className="transition-transform shrink-0" />
                 <Folder className="h-4 w-4 mr-2 shrink-0" />
-                <span>{folderName}</span>
+                <span title={folderName} className="truncate">{folderName}</span>
               </SidebarMenuButton>
             </CollapsibleTrigger>
 

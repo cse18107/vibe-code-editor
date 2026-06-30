@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
+import { UsernameSettings } from "@/features/collaboration/components/username-settings"
 import {
   Sidebar,
   SidebarContent,
@@ -176,12 +177,7 @@ export function DashboardSidebar({ initialPlaygroundData }: { initialPlaygroundD
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Settings">
-              <Link href="/settings">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
+            <UsernameSettings />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
