@@ -246,9 +246,17 @@ function TemplateNode({
   if (!isFolder) {
     const file = item as TemplateFile
     const fileName = `${file.filename}.${file.fileExtension}`
+    const currentFilePath = path ? `${path}/${fileName}` : fileName
 
-    const isSelected =
-      selectedFile && selectedFile.filename === file.filename && selectedFile.fileExtension === file.fileExtension
+    // Highlight by full path (the selected file's id is its path) so duplicate
+    // filenames like several app/**/page.tsx don't all light up. Fall back to
+    // name + extension if no id is available.
+    const selectedId = (selectedFile as { id?: string } | undefined)?.id
+    const isSelected = selectedId
+      ? selectedId === currentFilePath
+      : selectedFile &&
+        selectedFile.filename === file.filename &&
+        selectedFile.fileExtension === file.fileExtension
 
     const handleRename = () => {
       setIsRenameDialogOpen(true)

@@ -87,52 +87,6 @@ const templates: TemplateOption[] = [
     features: ["Middleware", "Routing", "HTTP Utilities"],
     category: "backend",
   },
-  {
-    id: "vue",
-    name: "Vue.js",
-    description:
-      "Progressive JavaScript framework for building user interfaces with an approachable learning curve",
-    icon: "/vuejs-icon.svg",
-    color: "#4FC08D",
-    popularity: 4,
-    tags: ["UI", "Frontend", "JavaScript"],
-    features: ["Reactive Data Binding", "Component System", "Virtual DOM"],
-    category: "frontend",
-  },
-  {
-    id: "hono",
-    name: "Hono",
-    description:
-      "Fast, lightweight, built on Web Standards. Support for any JavaScript runtime.",
-    icon: "/hono.svg",
-    color: "#e36002",
-    popularity: 3,
-    tags: ["Node.js", "TypeScript", "Backend"],
-    features: [
-      "Dependency Injection",
-      "TypeScript Support",
-      "Modular Architecture",
-    ],
-    category: "backend",
-  },
-  {
-    id: "angular",
-    name: "Angular",
-    description:
-      "Angular is a web framework that empowers developers to build fast, reliable applications.",
-    icon: "/angular-2.svg",
-    color: "#DD0031",
-    popularity: 3,
-    tags: ["React", "Fullstack", "JavaScript"],
-    features: [
-      "Reactive Data Binding",
-      "Component System",
-      "Virtual DOM",
-      "Dependency Injection",
-      "TypeScript Support",
-    ],
-    category: "fullstack",
-  },
 ];
 
 const TemplateSelectionModal = ({
@@ -297,10 +251,6 @@ const TemplateSelectionModal = ({
                           }`}
                         onClick={() => handleSelectTemplate(template.id)}
                       >
-                        <div className="absolute top-4 right-4 flex gap-1">
-                          {renderStars(template.popularity)}
-                        </div>
-
                         {selectedTemplate === template.id && (
                           <div className="absolute top-2 left-2 bg-[#E93F3F] text-white rounded-full p-1">
                             <Check size={14} />

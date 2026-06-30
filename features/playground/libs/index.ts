@@ -5,23 +5,40 @@ export function findFilePath(
   folder: TemplateFolder,
   pathSoFar: string[] = []
 ): string | null {
-  for (const item of folder.items) {
-    if ("folderName" in item) {
-      const res = findFilePath(file, item, [...pathSoFar, item.folderName]);
-      if (res) return res;
-    } else {
-      if (
-        item.filename === file.filename &&
-        item.fileExtension === file.fileExtension
-      ) {
+  // Resolve in two passes. First match by exact object identity so that
+  // duplicate filenames (e.g. several app/**/page.tsx in a Next.js project)
+  // resolve to the SPECIFIC file that was clicked, not just the first one with
+  // that name. Then fall back to filename + extension for callers that pass a
+  // copied/equivalent object instead of the original tree node.
+  const search = (
+    current: TemplateFolder,
+    prefix: string[],
+    matches: (item: TemplateFile) => boolean
+  ): string | null => {
+    for (const item of current.items) {
+      if ("folderName" in item) {
+        const res = search(item, [...prefix, item.folderName], matches);
+        if (res) return res;
+      } else if (matches(item)) {
         return [
-          ...pathSoFar,
+          ...prefix,
           item.filename + (item.fileExtension ? "." + item.fileExtension : ""),
         ].join("/");
       }
     }
-  }
-  return null;
+    return null;
+  };
+
+  return (
+    search(folder, pathSoFar, (item) => item === file) ??
+    search(
+      folder,
+      pathSoFar,
+      (item) =>
+        item.filename === file.filename &&
+        item.fileExtension === file.fileExtension
+    )
+  );
 }
 
 
@@ -70,15 +87,14 @@ export async function longPoll<T>(
  * @returns A unique file identifier including full path
  */
 export const generateFileId = (file: TemplateFile, rootFolder: TemplateFolder): string => {
-  // Find the file's path in the folder structure
-  const path = findFilePath(file, rootFolder)?.replace(/^\/+/, '') || '';
-  
-  // Handle empty/undefined file extension
-  const extension = file.fileExtension?.trim();
-  const extensionSuffix = extension ? `.${extension}` : '';
+  // The resolved path already includes the filename + extension, so it IS the
+  // unique id (e.g. "app/user/page.tsx"). This keeps every file distinct even
+  // when several share a name across folders.
+  const path = findFilePath(file, rootFolder)?.replace(/^\/+/, '');
+  if (path) return path;
 
-  // Combine path and filename
-  return path
-    ? `${path}/${file.filename}${extensionSuffix}`
-    : `${file.filename}${extensionSuffix}`;
+  // Fallback: file isn't in the tree yet (e.g. freshly created) — use the bare
+  // name so it still has a stable id.
+  const extension = file.fileExtension?.trim();
+  return `${file.filename}${extension ? `.${extension}` : ''}`;
 }

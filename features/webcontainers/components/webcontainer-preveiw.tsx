@@ -6,8 +6,13 @@ import { transformToWebContainerFormat } from "../hooks/transformer";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Play, Maximize2, Minimize2 } from "lucide-react";
+import { Play, Maximize2, Minimize2, RefreshCw } from "lucide-react";
 import TerminalComponent from "./terminal";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import { WebContainer } from "@webcontainer/api";
 
 interface WebContainerPreviewProps {
@@ -51,6 +56,8 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   const [command, setCommand] = useState("");
   const [running, setRunning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Bumping this remounts the preview iframe, forcing a fresh reload.
+  const [reloadKey, setReloadKey] = useState(0);
 
   const runCommand = async (raw: string) => {
     const cmd = raw.trim();
@@ -404,6 +411,15 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
                 variant="ghost"
                 size="sm"
                 className="h-7"
+                title="Reload preview"
+                onClick={() => setReloadKey((k) => k + 1)}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reload
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7"
                 onClick={() => setIsFullscreen((f) => !f)}
               >
                 {isFullscreen ? (
@@ -419,24 +435,78 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
             </div>
           </div>
 
-          {/* Preview */}
-          <div className="flex-1">
-            <iframe
-              src={previewUrl}
-              className="w-full h-full border-none"
-              title="WebContainer Preview"
-            />
-          </div>
+          {isFullscreen ? (
+            /* Fullscreen: just the preview */
+            <div className="flex-1 min-h-0">
+              <iframe
+                key={reloadKey}
+                src={previewUrl}
+                className="w-full h-full border-none"
+                title="WebContainer Preview"
+              />
+            </div>
+          ) : (
+            /* Vertical split: preview on top, terminal below (drag to resize).
+               Using the resizable panels gives each pane a properly bounded
+               height, so the terminal stays on-screen and scrolls correctly. */
+            <ResizablePanelGroup
+              direction="vertical"
+              className="flex-1 min-h-0"
+            >
+              <ResizablePanel defaultSize={60} minSize={20} className="min-h-0">
+                <iframe
+                  key={reloadKey}
+                  src={previewUrl}
+                  className="w-full h-full border-none"
+                  title="WebContainer Preview"
+                />
+              </ResizablePanel>
 
-          {/* Terminal at bottom (hidden in fullscreen, kept mounted) */}
-          <div className={isFullscreen ? "hidden" : "h-64 border-t"}>
-            <TerminalComponent
-              ref={terminalRef}
-              webContainerInstance={instance}
-              theme="dark"
-              className="h-full"
-            />
-          </div>
+              <ResizableHandle withHandle />
+
+              <ResizablePanel
+                defaultSize={40}
+                minSize={15}
+                className="flex flex-col min-h-0 border-t"
+              >
+                {/* Command bar — the embedded terminal's input is unreliable,
+                    so commands are run via this input even while live. */}
+                <div className="flex gap-2 p-2 border-b bg-muted/30 shrink-0">
+                  <input
+                    value={command}
+                    onChange={(e) => setCommand(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        runCommand(command);
+                        setCommand("");
+                      }
+                    }}
+                    placeholder="Type a command, e.g. npm run dev"
+                    disabled={running}
+                    className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm font-mono outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      runCommand(command);
+                      setCommand("");
+                    }}
+                    disabled={running || !command.trim()}
+                  >
+                    <Play className="h-3.5 w-3.5 mr-1" /> Run
+                  </Button>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <TerminalComponent
+                    ref={terminalRef}
+                    webContainerInstance={instance}
+                    theme="dark"
+                    className="h-full"
+                  />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          )}
         </div>
       )}
     </div>

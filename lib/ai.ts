@@ -100,13 +100,23 @@ async function geminiChat(
       parts: [{ text: m.content }],
     }));
 
-  const body: Record<string, unknown> = {
-    contents,
-    generationConfig: {
-      temperature: opts.temperature ?? 0.7,
-      maxOutputTokens: opts.maxTokens ?? 1024,
-    },
+  // Gemini 2.5 models "think", consuming part of the output budget on internal
+  // reasoning. If the budget is too small, the visible answer comes back empty.
+  // - Flash: disable thinking for fast, direct output.
+  // - Pro (can't disable thinking): give a generous output budget so the answer
+  //   has room after reasoning.
+  const isFlash = model.toLowerCase().includes("flash");
+  const generationConfig: Record<string, unknown> = {
+    temperature: opts.temperature ?? 0.7,
+    maxOutputTokens: isFlash
+      ? opts.maxTokens ?? 1024
+      : Math.max(opts.maxTokens ?? 4096, 4096),
   };
+  if (isFlash) {
+    generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  }
+
+  const body: Record<string, unknown> = { contents, generationConfig };
   if (systemText) {
     body.systemInstruction = { parts: [{ text: systemText }] };
   }
@@ -124,6 +134,14 @@ async function geminiChat(
   const text = (data.candidates?.[0]?.content?.parts ?? [])
     .map((p: { text?: string }) => p.text ?? "")
     .join("");
+  if (!text) {
+    console.error(
+      "Gemini returned empty text.",
+      "model:", model,
+      "finishReason:", data.candidates?.[0]?.finishReason,
+      "promptFeedback:", JSON.stringify(data.promptFeedback)
+    );
+  }
   return text.trim();
 }
 

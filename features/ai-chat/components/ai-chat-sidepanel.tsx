@@ -944,50 +944,6 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                >
-                  <Paperclip className="h-4 w-4 mr-1" />
-                  Attach
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuCheckboxItem
-                      checked={autoSave}
-                      onCheckedChange={setAutoSave}
-                    >
-                      Auto-save conversations
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={streamResponse}
-                      onCheckedChange={setStreamResponse}
-                    >
-                      Stream responses
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={exportChat}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Chat
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setMessages([])}>
-                      Clear All Messages
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
                   onClick={onClose}
                   className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
                 >
@@ -996,82 +952,6 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
               </div>
             </div>
 
-            {/* Enhanced Controls */}
-            <Tabs
-              value={chatMode}
-              onValueChange={(value) => setChatMode(value as any)}
-              className="px-6"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <TabsList className="grid w-full grid-cols-4 max-w-md">
-                  <TabsTrigger value="chat" className="flex items-center gap-1">
-                    <MessageSquare className="h-3 w-3" />
-                    Chat
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="review"
-                    className="flex items-center gap-1"
-                  >
-                    <Code className="h-3 w-3" />
-                    Review
-                  </TabsTrigger>
-                  <TabsTrigger value="fix" className="flex items-center gap-1">
-                    <RefreshCw className="h-3 w-3" />
-                    Fix
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="optimize"
-                    className="flex items-center gap-1"
-                  >
-                    <Zap className="h-3 w-3" />
-                    Optimize
-                  </TabsTrigger>
-                </TabsList>
-
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-zinc-500" />
-                    <Input
-                      placeholder="Search messages..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-7 h-8 w-40 bg-zinc-800/50 border-zinc-700/50"
-                    />
-                  </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Filter className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setFilterType("all")}>
-                        All Messages
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setFilterType("chat")}>
-                        Chat Only
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterType("code_review")}
-                      >
-                        Code Reviews
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterType("error_fix")}
-                      >
-                        Error Fixes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setFilterType("optimization")}
-                      >
-                        Optimizations
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </Tabs>
           </div>
 
           {/* Messages Container */}
@@ -1369,15 +1249,6 @@ export const AIChatSidePanel: React.FC<AIChatSidePanelProps> = ({
                   rows={1}
                 />
                 <div className="absolute right-3 bottom-3 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-300"
-                  >
-                    <Paperclip className="h-3 w-3" />
-                  </Button>
                   <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-xs text-zinc-500 bg-zinc-800 border border-zinc-700 rounded">
                     ⌘↵
                   </kbd>

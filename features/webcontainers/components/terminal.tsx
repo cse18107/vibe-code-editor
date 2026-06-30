@@ -109,6 +109,7 @@ const TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
     writeToTerminal: (data: string) => {
       if (term.current) {
         term.current.write(data);
+        term.current.scrollToBottom();
       }
     },
     clearTerminal: () => {
@@ -305,10 +306,18 @@ const TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
     // Handle terminal input
     terminal.onData(handleTerminalInput);
 
-    // Initial fit
-    setTimeout(() => {
-      fitAddonInstance.fit();
-    }, 100);
+    // Initial fit — retry a few times while the layout settles. A single fit
+    // can run before the container has its real height, leaving the terminal
+    // sized to zero rows (appears blank).
+    [50, 150, 350, 700, 1200].forEach((delay) => {
+      setTimeout(() => {
+        try {
+          fitAddonInstance.fit();
+        } catch {
+          /* container not ready yet */
+        }
+      }, delay);
+    });
 
     // Welcome message
     terminal.writeln("🚀 WebContainer Terminal");
@@ -326,6 +335,14 @@ const TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
       term.current.writeln("✅ Connected to WebContainer");
       term.current.writeln("Ready to execute commands");
       writePrompt();
+      // Refit now that content exists and the panel is visible.
+      setTimeout(() => {
+        try {
+          fitAddon.current?.fit();
+        } catch {
+          /* ignore */
+        }
+      }, 50);
     } catch (error) {
       setIsConnected(false);
       term.current.writeln("❌ Failed to connect to WebContainer");
@@ -398,7 +415,17 @@ const TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
       resizeObserver.observe(terminalRef.current);
     }
 
+    const onWindowResize = () => {
+      try {
+        fitAddon.current?.fit();
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener("resize", onWindowResize);
+
     return () => {
+      window.removeEventListener("resize", onWindowResize);
       resizeObserver.disconnect();
       if (currentProcess.current) {
         currentProcess.current.kill();
@@ -491,16 +518,15 @@ const TerminalComponent = forwardRef<TerminalRef, TerminalProps>(({
         </div>
       </div>
 
-      {/* Terminal Content */}
-      <div className="flex-1 relative">
-        <div 
-          ref={terminalRef} 
-          className="absolute inset-0 p-2"
-          style={{ 
-            background: terminalThemes[theme].background,
-          }}
-        />
-      </div>
+      {/* Terminal Content — flex-1 + min-h-0 gives the fit addon a reliable,
+          bounded height so the terminal isn't sized to more rows than fit. */}
+      <div
+        ref={terminalRef}
+        className="flex-1 min-h-0 w-full overflow-hidden p-2"
+        style={{
+          background: terminalThemes[theme].background,
+        }}
+      />
     </div>
   );
 });

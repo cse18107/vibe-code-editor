@@ -270,8 +270,10 @@ const MainPlaygroundPage: React.FC = () => {
   );
 
   const activeFile = openFiles.find((file) => file.id === activeFileId);
-  const activeFilePath =
-    activeFile && templateData ? findFilePath(activeFile, templateData) : null;
+  // An open file's id IS its full unique path (e.g. "app/user/page.tsx"), so use
+  // it directly. Re-searching by name would be ambiguous for duplicate
+  // filenames like several app/**/page.tsx.
+  const activeFilePath = activeFile ? activeFile.id : null;
 
   // Live preview sync: write the active file into THIS browser's WebContainer
   // whenever its content changes — from local typing OR a remote collaborator's
@@ -304,7 +306,8 @@ const MainPlaygroundPage: React.FC = () => {
       if (!latestTemplateData) return;
 
       try {
-        const filePath = findFilePath(fileToSave, latestTemplateData);
+        // The open file's id is its full unique path (e.g. "app/user/page.tsx").
+        const filePath = fileToSave.id;
         if (!filePath) {
           toast.error(
             `Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`
@@ -312,18 +315,28 @@ const MainPlaygroundPage: React.FC = () => {
           return;
         }
 
-        // Update file content in template data (clone for immutability)
+        // Update file content in template data (clone for immutability).
+        // Match by full path so duplicate filenames across folders don't clobber
+        // each other.
         const updatedTemplateData = JSON.parse(
           JSON.stringify(latestTemplateData)
         );
-        const updateFileContent = (items: any[]) =>
+        const updateFileContent = (items: any[], prefix = ""): any[] =>
           items.map((item) => {
             if ("folderName" in item) {
-              return { ...item, items: updateFileContent(item.items) };
-            } else if (
-              item.filename === fileToSave.filename &&
-              item.fileExtension === fileToSave.fileExtension
-            ) {
+              return {
+                ...item,
+                items: updateFileContent(
+                  item.items,
+                  prefix + item.folderName + "/"
+                ),
+              };
+            }
+            const itemPath =
+              prefix +
+              item.filename +
+              (item.fileExtension ? "." + item.fileExtension : "");
+            if (itemPath === filePath) {
               return { ...item, content: fileToSave.content };
             }
             return item;
